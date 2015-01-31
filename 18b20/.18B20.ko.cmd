@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/18b20/18B20.ko := arm-linux-ld -EL -r  -T /opt/FriendlyARM/linux-3.0.8/scripts/module-common.lds --build-id  -o /home/wang/work/modules/18b20/18B20.ko /home/wang/work/modules/18b20/18B20.o /home/wang/work/modules/18b20/18B20.mod.o

@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/timer/timer.ko := arm-linux-ld -EL -r  -T /opt/FriendlyARM/linux-3.0.8/scripts/module-common.lds --build-id  -o /home/wang/work/modules/timer/timer.ko /home/wang/work/modules/timer/timer.o /home/wang/work/modules/timer/timer.mod.o

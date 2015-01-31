@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/car_move/car_move.ko := arm-linux-ld -EL -r  -T /opt/FriendlyARM/linux-3.0.8/scripts/module-common.lds --build-id  -o /home/wang/work/modules/car_move/car_move.ko /home/wang/work/modules/car_move/car_move.o /home/wang/work/modules/car_move/car_move.mod.o

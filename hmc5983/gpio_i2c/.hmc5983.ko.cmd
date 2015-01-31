@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/hmc5983/gpio_i2c/hmc5983.ko := arm-linux-ld -EL -r  -T /opt/FriendlyARM/linux-3.0.8/scripts/module-common.lds --build-id  -o /home/wang/work/modules/hmc5983/gpio_i2c/hmc5983.ko /home/wang/work/modules/hmc5983/gpio_i2c/hmc5983.o /home/wang/work/modules/hmc5983/gpio_i2c/hmc5983.mod.o

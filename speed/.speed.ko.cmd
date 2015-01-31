@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/speed/speed.ko := arm-linux-ld -EL -r  -T /opt/FriendlyARM/linux-3.0.8/scripts/module-common.lds --build-id  -o /home/wang/work/modules/speed/speed.ko /home/wang/work/modules/speed/speed.o /home/wang/work/modules/speed/speed.mod.o

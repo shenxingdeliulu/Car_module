@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/hello.ko := ld -r -m elf_i386 -T /usr/src/linux-headers-3.2.0-67-generic-pae/scripts/module-common.lds --build-id  -o /home/wang/work/modules/hello.ko /home/wang/work/modules/hello.o /home/wang/work/modules/hello.mod.o

@@ -1,0 +1,1 @@
+cmd_/home/wang/work/modules/hmc5983/gpio_i2c/test/built-in.o :=  rm -f /home/wang/work/modules/hmc5983/gpio_i2c/test/built-in.o; arm-linux-ar rcsD /home/wang/work/modules/hmc5983/gpio_i2c/test/built-in.o
