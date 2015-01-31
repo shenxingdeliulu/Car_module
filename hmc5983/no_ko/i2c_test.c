@@ -272,7 +272,7 @@ int main()
 		angle=hmc5983_read();
 		delay(1000);
  		 Speed_Read();
-		PID_Control(angle,Setpoint);
+//		PID_Control(angle,Setpoint);
         PWM_Control(); 	
 		signal(SIGINT,stop);
 	
