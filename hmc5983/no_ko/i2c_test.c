@@ -132,7 +132,7 @@ double hmc5983_read()
 	return angle_read;
 
 	
-	delay(500);
+	delay(500); 
 }
 
 
@@ -162,8 +162,8 @@ void PID_Control(float sv,float fy)
 void PWM_Control()
 {
 	ioctl(fd_setpin,0,1);
-	ioctl(fd_pwm,1,(int)u+speed);
-	ioctl(fd_pwm,0,speed-(int)u);
+	ioctl(fd_pwm,1,500);
+	ioctl(fd_pwm,0,500);
 }
 void Speed_Read()
 {
