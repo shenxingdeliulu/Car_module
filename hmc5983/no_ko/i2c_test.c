@@ -17,15 +17,16 @@
 #define I2C_TIMEOUT 0x0702
 #define I2C_RDWR 0x0707 
 #define MAXBUFFER 1000
+#define DEBUG
 /******全局变量*****/
 unsigned char BUF[6];
 int fd,ret;
 int fd_pwm,fd_setpin;
 int fd_speed;
-int speed=600;
+//int speed=600;
 int flag_angle;
-unsigned int result[1];   
-int speed;
+unsigned int result[2];   
+int speed,speed2;
 float u;//这次输出的值
 float u1;//上次输出的值 
 float Kp=1.5;//比例系数 
@@ -107,17 +108,19 @@ double hmc5983_read()
 		for(i=0;i<6;i++)
 		{
 		BUF[i]=hmc5983_data.msgs[1].buf[i];
-		printf("buff%d[%d]=%x\n",i,i,BUF[i]);	
+		#ifdef DEBUG
+		printf("buff%d[%d]=%x\n",i,i,BUF[i]);
+		#endif	
 		}
 	
-		
+#ifdef DEBUG		
 	x=BUF[0] << 8 | BUF[1]; //Combine MSB and LSB of X Data output register
 	printf("x=%d\n",x);
     z=BUF[2] << 8 | BUF[3]; //Combine MSB and LSB of Z Data output register
 	printf("z=%d\n",z);
     y=BUF[4] << 8 | BUF[5]; //Combine MSB and LSB of Y Data output register
 	printf("y=%d\n",y);
-
+#endif
 //	fprintf(pf,"%d %d\n",x,y);
 	x=x+42;
 	y=y+144;
@@ -167,16 +170,22 @@ void PWM_Control()
 }
 void Speed_Read()
 {
-		int  num;
-		read(fd_speed, &result, sizeof(result));
-		num=result[0];
-		sleep(1);
-		read(fd_speed, &result, sizeof(result));
-		num=result[0]-num;
-
+		int  num,num2;
+        read(fd_speed, result, sizeof(result));
+        num=result[0];
+        num2=result[1];
+        sleep(1);
+        read(fd_speed, result, sizeof(result));
+        num=result[0]-num;
+        num2=result[1]-num2;
+#ifdef DEBUG        
         printf("%d\n",num ); 
+        printf("%d\n",num2);
+#endif
          speed=num/20;
-        printf("Current speed:%d\n", speed);
+         speed2=num2/20;
+        printf("Right Current speed:%d\n", speed);
+        printf("Left Current speed:%d\n", speed2); 
 }
 void stop()
 {

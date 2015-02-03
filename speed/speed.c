@@ -24,8 +24,10 @@
 #include <mach/regs-gpio.h>
 #define DEVICE_NAME "speed"
 #define speed_irq IRQ_EINT(27)
+#define speed_irq2 IRQ_EINT(26)
 struct cdev *iopwm_cdev;
-int counter;
+int counter[2]={0,0};
+
 //#define SDA S5PV210_GPH3(3)
 
 
@@ -37,18 +39,33 @@ static irqreturn_t speed_interrupt(int irq , void *dev_id)
 	return -1;
 	}
 	//if(gpio_get_value( S5PV210_GPH3(3))==1)
-	counter++;
+	counter[0]++;
 	return IRQ_RETVAL(IRQ_HANDLED);
 }
-
+static irqreturn_t speed2_interrupt(int irq,void *dev_id)
+{
+	if(irq !=IRQ_EINT(26))
+	{
+	printk("bad irq % d in EINT26 /n", irq);
+	return -1;
+	}
+	//if(gpio_get_value( S5PV210_GPH3(3))==1)
+	counter[1]++;
+	return IRQ_RETVAL(IRQ_HANDLED);
+}
 static int speed_open(struct inode *inode,struct file *filp)
 {  
-	int ret;
+	int ret,ret2;
 
 	ret=request_irq(speed_irq,speed_interrupt,IRQ_TYPE_EDGE_RISING, DEVICE_NAME, NULL);
+	ret2=request_irq(speed_irq2,speed2_interrupt,IRQ_TYPE_EDGE_RISING, DEVICE_NAME, NULL);
 	if(ret<0){
 printk("Register speed failed!/n");
 return ret;
+}
+if(ret2<0){
+printk("Register speed2 failed!/n");
+return ret2;
 }
 printk("Register speed success!/n");
 return 0; 
@@ -58,6 +75,7 @@ return 0;
 static int speed_close(struct inode *inode,struct file *filp)
 {
  free_irq(speed_irq,NULL);
+ free_irq(speed_irq2,NULL);
 return 0;
 }
 
@@ -68,7 +86,7 @@ static ssize_t speed_read(struct file *filp,int __user *buff,size_t count,loff_t
 		//num=counter;
 		//msleep(1000);
 		//num=counter-num;
-		err=copy_to_user(buff,&counter,count);
+		err=copy_to_user(buff,(const void*)counter,count);
 		if(err<0)
 			printk("read fail");
 		
