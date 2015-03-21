@@ -30,7 +30,7 @@
 
 struct cdev *iopwm_cdev;
 unsigned int counter=0;
-unsigned int pwm[]={50,50};
+unsigned int pwm;
 unsigned long tmp;
 static irqreturn_t iopwm_interrupt(int irq , void *dev_id)
 {
@@ -43,20 +43,20 @@ static irqreturn_t iopwm_interrupt(int irq , void *dev_id)
 
 
 	counter++;
-	if(counter ==pwm[0])
+	if(counter ==pwm)
 	{
-			gpio_set_value(S5PV210_GPH2(0),1);
+			gpio_set_value(S5PV210_GPH2(0),0);
 
 	}
-	if(counter ==pwm[1])
+	/*if(counter ==pwm[1])
 	{
-		gpio_set_value(S5PV210_GPH2(3),1);
+		gpio_set_value(S5PV210_GPH2(3),0);
 
-	}
+	} */
 	if(counter ==1000)
 	{
-		gpio_set_value(S5PV210_GPH2(0),0);
-		gpio_set_value(S5PV210_GPH2(3),0);
+		gpio_set_value(S5PV210_GPH2(0),1);
+		gpio_set_value(S5PV210_GPH2(3),1);
 		counter=0;
 
 	}
@@ -72,7 +72,7 @@ void iopwm_timerinit(void)
 	unsigned long tcfg0,tcfg1,tcon,cstat;
 	struct clk *clk_p;
 	unsigned long pclk,tcnt;
-	unsigned long freq=30000;
+	unsigned long freq=6500;
 
 {
 		s3c_gpio_setpull(S5PV210_GPH2(0),S3C_GPIO_PULL_UP);
@@ -138,11 +138,9 @@ static long iopwm_ioctl( struct file *filp, unsigned int cmd, unsigned long arg)
 switch (cmd)
 {
 case 0:
-pwm[0]=arg;
+pwm=arg;
 break;
-case 1:
-pwm[1]=arg;
-break;
+case 1:break;
 default:
 return -EINVAL;
 }

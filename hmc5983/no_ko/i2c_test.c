@@ -13,6 +13,8 @@
 #include <time.h>
 #include "pthread.h"
 #include <sys/wait.h>
+#include  <sys/time.h>
+#include <signal.h> 
 #define I2C_RETRIES 0x0701
 #define I2C_TIMEOUT 0x0702
 #define I2C_RDWR 0x0707 
@@ -23,7 +25,7 @@ unsigned char BUF[6];
 int fd,ret;
 int fd_pwm,fd_setpin;
 int fd_speed;
-//int speed=600;
+int speed=500;
 int flag_angle;
 unsigned int result[2];   
 int speed,speed2;
@@ -35,7 +37,7 @@ float Kd=0.5;//微分系数 
 float ek;//当次误差 
 float ek1;//上一次误差 
 float ek2;//上两次误差
-
+int num,num2;
 
 struct i2c_rdwr_ioctl_data hmc5983_data;
 pthread_mutex_t lock_angle = PTHREAD_MUTEX_INITIALIZER;
@@ -165,10 +167,10 @@ void PID_Control(float sv,float fy)
 void PWM_Control()
 {
 	ioctl(fd_setpin,0,1);
-	ioctl(fd_pwm,1,500);
-	ioctl(fd_pwm,0,500);
+	ioctl(fd_pwm,1,speed+(int)u);
+	ioctl(fd_pwm,0,speed-(int)u);
 }
-void Speed_Read()
+/*void Speed_Read()
 {
 		int  num,num2;
         read(fd_speed, result, sizeof(result));
@@ -186,6 +188,27 @@ void Speed_Read()
          speed2=num2/20;
         printf("Right Current speed:%d\n", speed);
         printf("Left Current speed:%d\n", speed2); 
+}*/
+void Speed_Read(int sig)
+{
+       
+        read(fd_speed, result, sizeof(result));
+        num=result[0]-num;
+        num2=result[1]-num2;
+      //  sleep(1);
+       // read(fd_speed, result, sizeof(result));
+       // num=result[0]-num;
+       // num2=result[1]-num2;
+        printf("%d\n",num ); 
+        printf("%d\n",num2);
+         speed=num/20;
+         speed2=num2/20;
+        printf("Left Current speed:%d\n", speed);
+        printf("Right Current speed:%d\n", speed2); 
+         read(fd_speed, result, sizeof(result));
+        num=result[0];
+        num2=result[1];
+        signal(SIGPROF, Speed_Read);  
 }
 void stop()
 {
@@ -224,6 +247,11 @@ int main()
 	float angle;
 	int res;
 	float Setpoint=285.0;//设置目标值
+	 struct itimerval value;
+	value.it_value.tv_sec=1;    /* 定时1秒 */
+	value.it_interval.tv_sec=1;    /* 定时1秒 */
+ 	signal(SIGPROF, Speed_Read);     
+	setitimer(ITIMER_PROF, &value, NULL);  
 	fd=open("/dev/i2c/0",O_RDWR);
 	fd_pwm=open("/dev/iopwm",O_RDWR);
 	fd_setpin=open("/dev/SetPin",O_RDWR);
@@ -280,8 +308,8 @@ int main()
 
 		angle=hmc5983_read();
 		delay(1000);
- 		 Speed_Read();
-//		PID_Control(angle,Setpoint);
+ 		 //Speed_Read();
+		PID_Control(angle,Setpoint);
         PWM_Control(); 	
 		signal(SIGINT,stop);
 	

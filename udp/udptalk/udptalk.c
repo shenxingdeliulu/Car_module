@@ -25,13 +25,13 @@ int main(int argc, char **argv)
 	socklen = sizeof(struct sockaddr_in);
 	memset(&peeraddr, 0, socklen);
 	peeraddr.sin_family=AF_INET;
-	peeraddr.sin_port=htons(45454);
+	peeraddr.sin_port=htons(56565);
 	peeraddr.sin_addr.s_addr=htonl(INADDR_ANY);
 	
 	memset(&localaddr, 0, socklen);
 	localaddr.sin_family=AF_INET;
 	localaddr.sin_port=htons(56565);
-	localaddr.sin_addr.s_addr=inet_addr("192.168.3.119");
+	localaddr.sin_addr.s_addr=htonl(INADDR_ANY);
 
 	if(bind(sockfd, &localaddr, socklen)<0){	
 		printf("bind local address err in udptalk!\n");

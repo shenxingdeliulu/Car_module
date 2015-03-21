@@ -30,16 +30,20 @@
 
 #define NS_IN_1HZ		(1000000000UL)//用于设置计数器值来获取相应频率
 
-#define BUZZER_PWM_ID		0
-#define BUZZER_PWM_GPIO		S5PV210_GPD0(0)//蜂鸣器的输出端口
-
+#define PWM_ID		0
+#define PWM_GPIO		S5PV210_GPD0(0)//蜂鸣器的输出端口
+#define PWM2_ID		1
+#define PWM2_GPIO		S5PV210_GPD0(1)
 static struct pwm_device *pwm4buzzer;//pwm设备结构
+static struct pwm_device *pwm4acc;
 static struct semaphore lock;//信号锁
 
 static void pwm_stop(void)
 {
 	pwm_config( pwm4buzzer,0,NS_IN_1HZ / 100 );
+	pwm_config(pwm4acc,0,NS_IN_1HZ/100);
 	pwm_disable(pwm4buzzer);
+	pwm_disable(pwm4acc);
 }
 
 static int gec210_pwm_open(struct inode *inode ,struct file *file)
@@ -55,7 +59,7 @@ static int gec210_pwm_close(struct inode *inode,struct file *file)
 	up(&lock);//p操作，即释放信号锁
 	return 0;
 }
-static int gec210_pwm_write(struct file *filp,const char __user *buf,size_t count,loff_t *f_pos)
+/*static int gec210_pwm_write(struct file *filp,const char __user *buf,size_t count,loff_t *f_pos)
 {
 	char mybuf[1];
 //        printk("%s",mybuf);
@@ -66,31 +70,39 @@ static int gec210_pwm_write(struct file *filp,const char __user *buf,size_t coun
 
         return count;
 
-}
+}  */
 
 
 static long gec210_pwm_ioctl(struct file *filp , unsigned int cmd,
 			unsigned long arg)
 {
-	switch (cmd)
-	{
-		case PWM_IOCTL_SET_FREQ:
-			if( arg == 0 )
-				return -EINVAL;
-//			pwm_set_freq( arg );//设置输出频率
+	
+	int p_ns = NS_IN_1HZ / 50;
+	switch (cmd) {
+		case 0:
+	 pwm_config( pwm4buzzer,p_ns / arg,p_ns );//设置周期
+	 pwm_enable(pwm4buzzer);//使能pwm
 			break;
-		case PWM_IOCTL_STOP://停止
-			pwm_stop();
+
+		case 1:
+		 pwm_config( pwm4acc,p_ns / arg,p_ns );//设置周期
+	 pwm_enable(pwm4acc);//使能pwm
+	 break;
+	 	case 3:
+	 	 pwm_disable(pwm4buzzer);//使能pwm
+	 	 pwm_disable(pwm4acc);//使能pwm
 		default:
+			pwm_stop();
 			break;
 	}
+
 	return 0;
 }
 
 static struct file_operations gec210_pwm_ops = {//pwm操作接口
 	.owner		=	THIS_MODULE,
 	.open		=	gec210_pwm_open,
-	.write 		=	gec210_pwm_write,
+//	.write 		=	gec210_pwm_write,
 	.release	=	gec210_pwm_close,
 	.unlocked_ioctl	=	gec210_pwm_ioctl,	
 };
@@ -103,28 +115,42 @@ static struct miscdevice gec210_misc_dev = {//misc设备
 	
 static int __init gec210_pwm_dev_init(void)
 {
-	int ret;
+	int ret,ret2;
 		
-	ret = gpio_request(BUZZER_PWM_GPIO, DEVICE_NAME);
+	ret = gpio_request(PWM_GPIO, DEVICE_NAME);
+	ret2 = gpio_request(PWM2_GPIO, DEVICE_NAME);
 	if(ret)
 	{
-		printk("request GPIO %d for pwm failed\n",BUZZER_PWM_GPIO);
+		printk("request GPIO %d for pwm failed\n",PWM_GPIO);
 		return ret;
 	}
-	gpio_set_value(BUZZER_PWM_GPIO,0);
-	s3c_gpio_cfgpin(BUZZER_PWM_GPIO,S3C_GPIO_OUTPUT);//设置为输出端口
-
-	pwm4buzzer = pwm_request(BUZZER_PWM_ID,DEVICE_NAME);//请求设备资源
+	if(ret2)
+	{
+		printk("request GPIO %d for pwm failed\n",PWM2_GPIO);
+		return ret2;
+	}
+	gpio_set_value(PWM_GPIO,0);
+	s3c_gpio_cfgpin(PWM_GPIO,S3C_GPIO_OUTPUT);//设置为输出端口
+	gpio_set_value(PWM2_GPIO,0);
+	s3c_gpio_cfgpin(PWM2_GPIO,S3C_GPIO_OUTPUT);//设置为输出端口
+	pwm4buzzer = pwm_request(PWM_ID,DEVICE_NAME);//请求设备资源
+	pwm4acc = pwm_request(PWM2_ID,DEVICE_NAME);//请求设备资源
 	if( IS_ERR(pwm4buzzer) )
 	{
-		printk("request pwm %d for %s failed\n",BUZZER_PWM_ID,DEVICE_NAME);
+		printk("request pwm %d for %s failed\n",PWM_ID,DEVICE_NAME);
+		return -ENODEV;
+	}
+	if( IS_ERR(pwm4acc) )
+	{
+		printk("request pwm %d for %s failed\n",PWM2_ID,DEVICE_NAME);
 		return -ENODEV;
 	}
 	pwm_stop();
 
-	s3c_gpio_cfgpin(BUZZER_PWM_GPIO,S3C_GPIO_SFN(2));
-	gpio_free(BUZZER_PWM_GPIO);
-	
+	s3c_gpio_cfgpin(PWM_GPIO,S3C_GPIO_SFN(2));
+	gpio_free(PWM_GPIO);
+	s3c_gpio_cfgpin(PWM2_GPIO,S3C_GPIO_SFN(2));
+	gpio_free(PWM2_GPIO);
 	sema_init(&lock,1);//初始化信号锁
 	ret = misc_register(&gec210_misc_dev);//注册misc设备
 	

@@ -9,7 +9,7 @@
 
 int main(int argc, char const *argv[])
 {
-	int client_fd;
+	int client_fd,server_fd;
 	struct sockaddr_in server_addr,client_addr;
 	client_fd=socket(AF_INET,SOCK_DGRAM,0);//建立数据报套接字
 	
@@ -23,8 +23,8 @@ int main(int argc, char const *argv[])
 	memset(&client_addr,0,sizeof(client_addr));
 	server_addr.sin_family=AF_INET;
 	server_addr.sin_port=htons(PORT);
-	//server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-	server_addr.sin_addr.s_addr=inet_addr("192.168.3.107");
+	server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
+//	server_addr.sin_addr.s_addr=inet_addr("192.168.3.107");
 	
 	char buffer[1024];
 	int size;
@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
 		{
 		struct sockaddr_in from;
 		sendto(client_fd,buffer,size,0,(struct sockaddr*)&server_addr,len);
-		int recvsize=recvfrom(server_fd,recv_buf,sizeof(recv_buf),0,NULL,NULL);
+		int recvsize=recvfrom(client_fd,recv_buf,sizeof(recv_buf),0,NULL,NULL);
 		recv_buf[recvsize]='\0';
 		printf("%d",recvsize);
 		if(recvsize>0)
